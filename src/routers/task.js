@@ -48,7 +48,7 @@ router.post('/tasks',auth, async (req,res) => {
         owner: req.user._id
     })
     const requestFields = Object.keys(req.body)
-    const fields = ['description','isCompleted']
+    const fields = ['description']
     const validRequest = fields.every(field => requestFields.includes(field))
     if(!validRequest)
         return res.status(400).send('Invalid request')

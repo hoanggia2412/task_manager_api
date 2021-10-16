@@ -108,7 +108,7 @@ router.post('/users',async (req,res) => {
         await user.save()
         await sendWelcomeEmail(user.email,user.username)
         const token = await user.generateAuthToken()
-        return res.send({user,token})
+        return res.status(201).send({user,token})
     } catch (err) {
         return res.status(500).send(err.message)
     }
@@ -121,11 +121,11 @@ router.delete('/users/me',auth,async (req,res) =>{
         // const user = await User.findByIdAndDelete(req.user._id)
         // if(!user)
         //     return res.status(404).send()
-        sendCancelationEmail(req.user.email,req.user.username)
+        // sendCancelationEmail(req.user.email,req.user.username)
         await req.user.remove()
         res.send(req.user)
     }catch (err){
-        res.status(500).send()
+        res.status(500).send(err.message)
     }
 })
 router.delete('/users/:id',async (req,res) =>{
@@ -166,13 +166,15 @@ router.get('/users',auth,async (req,res) => {
     }
 })
 
-router.post('/users/me/avatar',auth,upload.single('avatar'),async (req,res) => {
+router.post('/users/me/avatar',auth,upload.single('avatar'), async (req,res) => {
     if (!req.body && !req.files) {
         throw new Error('Not found an image!')
     } else {
         await sharp(req.file.path).png().resize(262, 317).toFile('./public/images/resizeImgs/'+ '262x317-'+req.file.filename)
-        const user = await User.findOneAndUpdate({_id: req.user._id }, { avatar: req.file.path.replaceAll('\\','\'') },{ new :true})
-        res.send(user)
+        // const user = await User.findOneAndUpdate({_id: req.user._id }, { avatar: req.file.path },{ new :true})
+        req.user.avatar = req.file.path.toString().replace('public','')
+        await req.user.save()
+        res.send()
     }
 },(error, req, res, next) => {
     res.status(400).send({error: error.message})
